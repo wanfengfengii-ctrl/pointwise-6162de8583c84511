@@ -1,0 +1,17 @@
+{
+  "events": [
+    {"row_id":"a0","device_id":"A","version":1,"features":{"x":-2,"reference":7},"target":8},
+    {"row_id":"a1","device_id":"A","version":1,"features":{"x":-1,"reference":7},"target":9},
+    {"row_id":"b0","device_id":"B","version":1,"features":{"x":1,"reference":7},"target":11},
+    {"row_id":"b1","device_id":"B","version":1,"features":{"x":2,"reference":7},"target":12},
+    {"row_id":"c0","device_id":"C","version":1,"features":{"x":4,"reference":7},"target":14},
+    {"row_id":"d0","device_id":"D","version":1,"features":{"x":6,"reference":7},"target":16},
+    {"row_id":"d1","device_id":"D","version":1,"features":{"x":6,"reference":7},"target":16},
+    {"row_id":"d2","device_id":"D","version":1,"features":{"x":6,"reference":7},"target":16}
+  ],
+  "feature_order": ["x", "reference"],
+  "training_devices": ["A", "B"],
+  "holdout_devices": ["C", "D"],
+  "lambda": "1",
+  "predict": [[8, 7]]
+}
