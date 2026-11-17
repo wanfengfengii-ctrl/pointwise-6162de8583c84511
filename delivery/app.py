@@ -3,9 +3,11 @@ from archive.reading import read_cohort, read_fit, read_package
 from measurements.batches import apply_measurements
 from cohorts.snapshot import freeze_cohort
 from fitting.diagnostics import fit_numeric
+from fitting.correlated import fit_correlated
 from prediction.holdout import evaluate_holdout
 from prediction.execution import predict_numeric
-from delivery.exporting import export_package
+from prediction.correlated import predict_correlated
+from delivery.exporting import export_correlated_fit, export_package
 
 
 class NumericArchiveApp:
@@ -26,6 +28,17 @@ class NumericArchiveApp:
                                self.solver if solver is None else solver,
                                self.publication_hook)
         return read_fit(self.store, identity)
+
+    def fit_correlated(self, cohort_id, devices, lambda_, noise):
+        identity = fit_correlated(self.store, cohort_id, devices,
+                                  lambda_, noise, self.publication_hook)
+        return read_fit(self.store, identity)
+
+    def predict_correlated(self, fit_id, rows, B, D):
+        return predict_correlated(self.store, fit_id, rows, B, D)
+
+    def export_correlated_fit(self, fit_id, target):
+        return export_correlated_fit(self.store, fit_id, target)
 
     def evaluate_holdout(self, fit_id, holdout_devices):
         return evaluate_holdout(self.store, fit_id, holdout_devices, self.publication_hook)

@@ -20,6 +20,10 @@ def build_holdout_predictions(fit, rows):
 
 
 def evaluate_holdout(store, fit_id, holdout_devices, publication_hook=None):
+    from archive.reading import read_stored_payload
+    stored = read_stored_payload(store, fit_id, "fit")
+    if stored.get("model_kind") == "correlated":
+        raise ValueError("holdout evaluation does not apply to correlated fits")
     fit = read_fit(store, fit_id)
     cohort = read_cohort(store, fit["cohort_id"])
     rows = resolve_holdout_rows(cohort, fit["scope"]["devices"], holdout_devices)

@@ -58,6 +58,9 @@ def _read_parent(reader, store, identity):
 
 def read_fit(store, fit_id):
     payload = read_stored_payload(store, fit_id, "fit")
+    if payload.get("model_kind") == "correlated":
+        from fitting.correlated import validate_correlated_payload
+        return validate_correlated_payload(store, payload)
     try:
         from cohorts.partitions import build_training_scope
         from fitting.features import NumericTransform

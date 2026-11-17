@@ -124,3 +124,23 @@ fit_numeric 的 solver(matrix,rhs) 关键字及 open_archive 的 solver 参数�
 求解依赖替换；默认始终调用 fitting/solver.py 的真实求解器。
 
 完整回归和操作说明见 RUNBOOK.md；运行清单见 .pointwise-runtime.json。
+
+## 相关噪声拟合与条件联合预测
+
+V1 之外另有已知测量噪声的拟合与预测链，口径见 CORRELATED.md。
+训练与新行使用同一份固定噪声协方差和训练残差，共享校准误差按联合模型处理，
+不重复当独立信息，也不估计噪声参数或系数估计不确定性。
+
+    with open_archive("/tmp/haijia.sqlite") as app:
+        fit = app.fit_correlated(cohort_id, {"A"}, 1, {
+            "revision_ids": revision_ids, "covariance": covariance})
+        prediction = app.predict_correlated(fit["fit_id"], rows, cross, new_noise)
+        document = app.export_correlated_fit(fit["fit_id"], "/tmp/correlated.json")
+
+fit_correlated 只接受 1～24 个训练行、1～4 个原始特征和严格正有理 lambda；
+noise 的 revision_ids 与 covariance 两轴同步规范到训练顺序，按精确有理数
+判断对称、半正定与支持可行性。残差硬约束在 C 的像空间内，奇异阵和零阵都允许；
+数据不可行整次拒绝且归档不变。predict_correlated 精确核验完整联合协方差
+[[C,Bᵀ],[B,D]]，返回固定 β 下的条件均值 X_newβ+BC⁺r 与完整协方差 D-BC⁺Bᵀ。
+read_fit 可读两类拟合；export_correlated_fit 输出 format="correlated-review-v1"。
+V1 的 fit_numeric、evaluate_holdout、predict_numeric 和既有成果不受影响。

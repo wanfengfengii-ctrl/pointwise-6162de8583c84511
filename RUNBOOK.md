@@ -51,3 +51,35 @@ v1、v6 回归在真实断言之后输出 POINTWISE_SCENARIO 单行 JSON，
 
 成果复核时先 read_package，再 export_package；发现完整性错误时保留原库供检查，
 不要以当前源数据补齐旧成果。测试损坏只作用于测试临时目录中的独立副本。
+
+## 相关噪声链路的核验与交接
+
+独立核账（全部在 tests/test_correlated.py，不使用生产求解器作 oracle）：
+
+    python3.11 -B -m unittest tests.test_correlated
+
+该文件内自带主子式 PSD 判定、独立 C⁺ 构造（B(BᵀCB)⁻¹Bᵀ）和只靠 RREF
+的可行域二次最小化 oracle；另用独立 RREF 复算条件均值与协方差。
+
+相关样例核验与演示：
+
+    python3.11 -B correlated_examples.py verify
+    python3.11 -B correlated_examples.py demo
+
+verify 先跑全部原回归再跑相关手算夹具；demo 在临时目录实际接纳、拟合、
+条件预测、更正、导出并关闭重开，输出真实均值、完整协方差与复开一致性。
+运行清单 .pointwise-runtime.json 的 verify/demo 已接这两个入口。
+
+交接不变量：
+- 训练噪声轴：fit.noise.revision_ids 恒等于 fit.scope.revision_ids（训练顺序）；
+  相同轴重排请求规范到同一 fit_id，重复请求不新增成果。
+- 支持约束：fit.residuals 精确满足 N·r=0（N 为 C 的零空间基），读取时复算；
+  训练不可行整次 ValueError，归档不变。
+- 预测消费：predict_correlated 复用同一固定拟合的 C、r 与训练顺序，不重拟合；
+  完整联合协方差非半正定（哪怕形式 Schur 补为正）整次拒绝。
+- 冻结性：后续更正/撤回、调用方改输入或返回对象、关闭重开均不改变旧拟合，
+  相同请求返回相同预测；读取与导出不重拟合。
+- 发布：相关拟合沿用原三检查点与 kind="fit"，异常原样传播并整体回滚。
+
+复核相关成果时先 read_fit 核对父子链与残差支持，再 export_correlated_fit；
+发现 ArchiveIntegrityError 时保留原库，不以当前源补齐。

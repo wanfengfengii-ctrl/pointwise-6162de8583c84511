@@ -1,10 +1,33 @@
 import os
 import tempfile
+from fractions import Fraction
 from pathlib import Path
 
-from archive.reading import read_artifact_graph
+from archive.reading import read_artifact_graph, read_cohort
 from archive.schema import encode_payload
 from delivery.auditing import build_review_manifest, build_training_projection
+
+
+def rational_document(value):
+    """Deep independent document with Fractions as reduced rational strings."""
+    if isinstance(value, Fraction):
+        return str(value)
+    if isinstance(value, dict):
+        return {key: rational_document(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [rational_document(item) for item in value]
+    return value
+
+
+def export_correlated_fit(store, fit_id, target):
+    from fitting.correlated import read_correlated_fit
+    fit = read_correlated_fit(store, fit_id)
+    cohort = read_cohort(store, fit["cohort_id"])
+    document = {"format": "correlated-review-v1",
+                "fit": rational_document(fit),
+                "cohort": cohort}
+    write_export_atomically(document, target)
+    return document
 
 
 def build_export_document(graph):
